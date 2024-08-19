@@ -118,63 +118,97 @@ const words = {
 }
 
 let currentWord = "";
-let currentIndex = 0;
 let score = 0;
-const languageSelect = document.getElementById("languageSelect");
-const speedSlider = document.getElementById("speedSlider");
-const speedValue = document.getElementById("speedValue");
-const logList = document.getElementById("logList");
-const replayButton = document.getElementById("replayButton");
+let log = [];
 
 function startGame() {
-    score = 0;
-    currentIndex = 0;
-    logList.innerHTML = ""; // ล้างบันทึกผลการตอบ
-    nextWord();
+  document.getElementById('question-container').classList.remove('hide');
+  document.getElementById('log-container').classList.remove('hide');
+
+  // เปลี่ยนข้อความและฟังก์ชันของปุ่ม
+  const startButton = document.querySelector('button[onclick="startGame()"]');
+  startButton.innerText = "รีเซ็ตและเริ่มเกมใหม่";
+  startButton.setAttribute("onclick", "resetGame()");
+
+  score = 0;
+  log = [];
+  getNextWord();
 }
 
-function nextWord() {
-    if (currentIndex < wordList.length) {
-        currentWord = wordList[currentIndex].word;
-        speakWord(currentWord);
-        replayButton.disabled = false; // เปิดใช้งานปุ่มฟังอีกครั้ง
-    } else {
-        document.getElementById("displayText").innerText = "จบเกมแล้ว! คุณได้คะแนน " + score + " / " + wordList.length;
-        replayButton.disabled = true; // ปิดใช้งานปุ่มฟังอีกครั้ง
-    }
+function resetGame() {
+  // รีเซ็ตทุกอย่างกลับไปที่ค่าเริ่มต้น
+  score = 0;
+  log = [];
+  document.getElementById('user-input').value = "";
+  document.getElementById('result').innerText = "";
+  document.getElementById('translation').innerText = "";
+  document.getElementById('log-list').innerHTML = "";
+
+  // เริ่มเกมใหม่
+  getNextWord();
 }
 
-function speakWord(word) {
-    const utterance = new SpeechSynthesisUtterance(word);
-    utterance.lang = languageSelect.value;
-    utterance.rate = speedSlider.value;
-    speechSynthesis.speak(utterance);
+function getNextWord() {
+  const wordList = Object.keys(words);
+  const randomIndex = Math.floor(Math.random() * wordList.length);
+  currentWord = wordList[randomIndex];
+
+  // ดึงค่าภาษาเลือกจาก Dropdown
+  const selectedLanguage = document.getElementById('language-select').value;
+
+  // กำหนดภาษาสำหรับการออกเสียง
+  const utterance = new SpeechSynthesisUtterance(currentWord);
+  utterance.lang = selectedLanguage;
+  utterance.rate = parseFloat(document.getElementById('speed-control').value);
+  speechSynthesis.speak(utterance);
+
+  document.getElementById('word-hint').innerText = "ฟังคำศัพท์แล้วพิมพ์คำที่ได้ยิน";
+  document.getElementById('user-input').value = "";
+  document.getElementById('result').innerText = "";
+  document.getElementById('translation').innerText = "";
 }
 
 function replayWord() {
-    speakWord(currentWord);
+  const selectedLanguage = document.getElementById('language-select').value;
+  const utterance = new SpeechSynthesisUtterance(currentWord);
+  utterance.lang = selectedLanguage;
+  utterance.rate = parseFloat(document.getElementById('speed-control').value);
+  speechSynthesis.speak(utterance);
 }
 
-function submitAnswer() {
-    const userInput = document.getElementById("wordInput").value.trim();
-    const correctWord = wordList[currentIndex].word;
-    const meaning = wordList[currentIndex].meaning;
-    let logEntry = `Word ${currentIndex + 1}: ${correctWord} (${meaning}) | คำตอบของคุณ: "${userInput}" `;
+function checkAnswer() {
+  const userAnswer = document.getElementById('user-input').value.trim();
+  const correctAnswer = currentWord;
+  const translation = words[correctAnswer];
 
-    if (userInput.toLowerCase() === correctWord.toLowerCase()) {
-        logEntry += "✅";
-        score++;
-    } else {
-        logEntry += "❌";
-    }
+  if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+    score++;
+    document.getElementById('result').innerText = `ถูกต้อง! ตอบถูกติดกัน: ${score} ครั้ง คำศัพท์ "${correctAnswer}" (${translation})`;
+  } else {
+    score = 0;
+    document.getElementById('result').innerText = `ผิด! คำตอบที่ถูกคือ "${correctAnswer}" (${translation})`;
+  }
 
-    logList.innerHTML += `<li>${logEntry}</li>`;
-    document.getElementById("wordInput").value = ""; // ล้างคำตอบที่พิมพ์ไว้
+  // เพิ่ม log บันทึกย้อนหลัง
+  log.push({
+    question: correctAnswer,
+    userAnswer: userAnswer,
+    isCorrect: userAnswer.toLowerCase() === correctAnswer.toLowerCase(),
+    translation: translation
+  });
+  updateLog();
 
-    currentIndex++;
-    nextWord();
+  getNextWord();
 }
 
-speedSlider.addEventListener("input", function () {
-    speedValue.innerText = speedSlider.value;
-});
+function updateLog() {
+  const logList = document.getElementById('log-list');
+  logList.innerHTML = "";
+
+  log.forEach((entry, index) => {
+    const logItem = document.createElement('li');
+    const resultEmoji = entry.isCorrect ? '✅' : '❌';
+    logItem.innerText = `Word ${index + 1}: ${entry.question} (${entry.translation}) | คำตอบของคุณ: ${entry.userAnswer} ${resultEmoji}`;
+    logList.appendChild(logItem);
+  });
+}
