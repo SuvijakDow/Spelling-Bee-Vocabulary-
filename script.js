@@ -208,7 +208,7 @@ function updateLog() {
   log.forEach((entry, index) => {
     const logItem = document.createElement('li');
     const resultEmoji = entry.isCorrect ? '✅' : '❌';
-    logItem.innerText = `Word ${index + 1}: ${entry.question} (${entry.translation}) | คำตอบของคุณ: ${entry.userAnswer} ${resultEmoji}`;
+    logItem.innerText = `Word ${index + 1}: ${entry.question} (${entry.translation}) <br> คำตอบของคุณ: ${entry.userAnswer} ${resultEmoji}`;
     logList.appendChild(logItem);
   });
 }
