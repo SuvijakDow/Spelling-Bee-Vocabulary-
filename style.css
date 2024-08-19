@@ -1,0 +1,104 @@
+/* ตั้งค่าพื้นฐาน */
+body {
+    font-family: 'Sarabun', sans-serif;
+    background-color: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* กล่องหลัก */
+.container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 450px;
+}
+
+/* หัวเรื่อง */
+h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333333;
+    margin-bottom: 20px;
+}
+
+/* กล่องเกม */
+.game-box {
+    margin-bottom: 20px;
+}
+
+/* ปุ่ม */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 15px;
+    width: 100%;
+}
+
+button#play-sound {
+    background-color: #007bff;
+    color: white;
+    margin-bottom: 15px;
+}
+
+button#play-sound:hover {
+    background-color: #0056b3;
+}
+
+button#check-answer {
+    background-color: #28a745;
+    color: white;
+}
+
+button#check-answer:hover {
+    background-color: #218838;
+}
+
+/* ช่อง Input */
+input[type="text"] {
+    padding: 15px;
+    font-size: 16px;
+    width: 100%;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+    outline: none;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus {
+    border-color: #007bff;
+}
+
+/* กล่องคะแนน */
+.score-box {
+    margin-top: 20px;
+}
+
+p {
+    font-size: 18px;
+    margin-top: 10px;
+}
+
+#result {
+    font-size: 20px;
+    font-weight: 600;
+}
+
+#score {
+    font-size: 22px;
+    font-weight: 700;
+    color: #007bff;
+}
