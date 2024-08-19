@@ -140,9 +140,9 @@ function resetGame() {
   score = 0;
   log = [];
   document.getElementById('user-input').value = "";
-  document.getElementById('result').innerText = "";
   document.getElementById('translation').innerText = "";
   document.getElementById('log-list').innerHTML = "";
+  document.getElementById('result').innerText = "";
 
   // เริ่มเกมใหม่
   getNextWord();
@@ -164,7 +164,6 @@ function getNextWord() {
 
   document.getElementById('word-hint').innerText = "ฟังคำศัพท์แล้วพิมพ์คำที่ได้ยิน";
   document.getElementById('user-input').value = "";
-  document.getElementById('result').innerText = "";
   document.getElementById('translation').innerText = "";
 }
 
