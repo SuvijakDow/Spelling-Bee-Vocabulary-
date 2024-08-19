@@ -115,52 +115,93 @@ const words = {
   "Yearn": "ปรารถนา",
   "Yield": "ยินยอม",
   "Zany": "ตลกโปกฮา"
-};
-
-let currentWord = '';
-let score = 0;
-
-function startGame() {
-  const wordArray = Object.keys(words);
-  currentWord = wordArray[Math.floor(Math.random() * wordArray.length)];
-  document.getElementById("question-container").classList.remove("hide");
-  document.getElementById("word-hint").textContent = "ฟังคำศัพท์แล้วพิมพ์คำที่ได้ยิน";
-
-  // เรียกฟังก์ชันเพื่อออกเสียงคำศัพท์
-  speakWord(currentWord);
 }
 
-function speakWord(word) {
-  const utterance = new SpeechSynthesisUtterance(word);
+let currentWord = "";
+let score = 0;
+let log = [];
 
-  // ดึงค่าความเร็วจาก slider
-  const speed = document.getElementById("speed-control").value;
-  utterance.rate = speed; // ปรับความเร็ว
+function startGame() {
+  document.getElementById('question-container').classList.remove('hide');
+  document.getElementById('log-container').classList.remove('hide');
 
-  utterance.lang = 'en-US'; // ตั้งค่าภาษาและสำเนียง
+  // เปลี่ยนข้อความและฟังก์ชันของปุ่ม
+  const startButton = document.querySelector('button[onclick="startGame()"]');
+  startButton.innerText = "รีเซ็ตและเริ่มเกมใหม่";
+  startButton.setAttribute("onclick", "resetGame()");
+
+  score = 0;
+  log = [];
+  getNextWord();
+}
+
+function resetGame() {
+  // รีเซ็ตทุกอย่างกลับไปที่ค่าเริ่มต้น
+  score = 0;
+  log = [];
+  document.getElementById('user-input').value = "";
+  document.getElementById('result').innerText = "";
+  document.getElementById('translation').innerText = "";
+  document.getElementById('log-list').innerHTML = "";
+
+  // เริ่มเกมใหม่
+  getNextWord();
+}
+
+function getNextWord() {
+  const wordList = Object.keys(words);
+  const randomIndex = Math.floor(Math.random() * wordList.length);
+  currentWord = wordList[randomIndex];
+
+  const utterance = new SpeechSynthesisUtterance(currentWord);
+  utterance.rate = parseFloat(document.getElementById('speed-control').value);
   speechSynthesis.speak(utterance);
 
-  document.getElementById("speed-value").textContent = speed; // อัพเดตค่าความเร็วที่แสดงบนหน้าเว็บ
+  document.getElementById('word-hint').innerText = "ฟังคำศัพท์แล้วพิมพ์คำที่ได้ยิน";
+  document.getElementById('user-input').value = "";
+  document.getElementById('result').innerText = "";
+  document.getElementById('translation').innerText = "";
+}
+
+function replayWord() {
+  const utterance = new SpeechSynthesisUtterance(currentWord);
+  utterance.rate = parseFloat(document.getElementById('speed-control').value);
+  speechSynthesis.speak(utterance);
 }
 
 function checkAnswer() {
-  const userInput = document.getElementById("user-input").value.trim();
-  const translation = words[currentWord];
+  const userAnswer = document.getElementById('user-input').value.trim();
+  const correctAnswer = currentWord;
+  const translation = words[correctAnswer];
 
-  if (userInput.toLowerCase() === currentWord.toLowerCase()) {
+  if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
     score++;
-    document.getElementById("result").textContent = `ถูกต้อง! ตอบถูกติดต่อกัน: ${score} ครั้ง \nคำศัพท์ "${currentWord}" (${translation})`;
+    document.getElementById('result').innerText = `ถูกต้อง! ตอบถูกติดกัน: ${score} ครั้ง คำศัพท์ "${correctAnswer}" (${translation})`;
   } else {
     score = 0;
-    document.getElementById("result").textContent = `ผิด! ตอบถูกติดต่อกัน: ${score} ครั้ง \nคำตอบที่ถูกคือ "${currentWord}" (${translation})`;
+    document.getElementById('result').innerText = `ผิด! คำตอบที่ถูกคือ "${correctAnswer}" (${translation})`;
   }
-  
-  // ออกเสียงคำถัดไป
-  startGame();
+
+  // เพิ่ม log บันทึกย้อนหลัง
+  log.push({
+    question: correctAnswer,
+    userAnswer: userAnswer,
+    isCorrect: userAnswer.toLowerCase() === correctAnswer.toLowerCase(),
+    translation: translation
+  });
+  updateLog();
+
+  getNextWord();
 }
 
-// อัพเดตความเร็วเมื่อเลื่อน slider
-document.getElementById("speed-control").addEventListener("input", (event) => {
-  const speed = event.target.value;
-  document.getElementById("speed-value").textContent = speed; // แสดงค่าความเร็วปัจจุบัน
-});
+function updateLog() {
+  const logList = document.getElementById('log-list');
+  logList.innerHTML = "";
+
+  log.forEach((entry, index) => {
+    const logItem = document.createElement('li');
+    const resultEmoji = entry.isCorrect ? '✅' : '❌';
+    logItem.innerText = `Word ${index + 1}: ${entry.question} (${entry.translation}) | คำตอบของคุณ: ${entry.userAnswer} ${resultEmoji}`;
+    logList.appendChild(logItem);
+  });
+}
