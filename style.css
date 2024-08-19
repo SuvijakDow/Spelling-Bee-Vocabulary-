@@ -6,7 +6,7 @@ body {
   align-items: center;
   height: 100vh;
   margin: 0;
-  padding: 0 20px; /* เพิ่ม padding ให้ตัว body */
+  padding: 0 20px;
   box-sizing: border-box;
 }
 
@@ -19,9 +19,8 @@ body {
   border-radius: 10px;
   text-align: center;
   box-sizing: border-box;
-  overflow-wrap: break-word; /* ให้ข้อความตัดบรรทัดเองหากยาวเกิน */
-  word-wrap: break-word;
-  hyphens: auto;
+  overflow-y: auto; /* ทำให้สามารถเลื่อนดูได้เมื่อเนื้อหาเกิน */
+  max-height: 90vh; /* จำกัดความสูงสูงสุดของ container */
 }
 
 h1 {
@@ -62,7 +61,7 @@ button:hover {
 label {
   font-size: 16px;
   margin-top: 20px;
-  display: block; /* ให้ label ครอบเต็มบรรทัด */
+  display: block;
 }
 
 select {
@@ -98,7 +97,8 @@ select {
 
 #log-container {
   margin-top: 20px;
-  word-wrap: break-word;
+  max-height: 200px; /* จำกัดความสูงของ log container */
+  overflow-y: auto; /* ทำให้สามารถเลื่อนดูได้ */
 }
 
 #log-list {
