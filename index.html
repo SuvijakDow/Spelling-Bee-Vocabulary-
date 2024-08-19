@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spelling Bee Vocabulary</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Spelling Bee Vocabulary</h1>
+    <button onclick="startGame()">🎧 เริ่มเกม!</button>
+    <div id="question-container" class="hide">
+      <p id="word-hint"></p>
+      <button id="replay-button" onclick="replayWord()">🔊 ฟังอีกครั้ง</button>
+      <input type="text" id="user-input" placeholder="พิมพ์คำที่ได้ยิน">
+      <button onclick="checkAnswer()">ส่งคำตอบ</button>
+      <p id="result"></p>
+      <p id="translation"></p>
+      <label for="speed-control">ปรับความเร็วในการพูด:</label>
+      <input type="range" id="speed-control" min="0.5" max="1.5" value="1" step="0.1">
+      <span id="speed-value">1.0</span>
+    </div>
+
+    <!-- Log Container -->
+    <div id="log-container" class="hide">
+      <h2>บันทึกผลการตอบ:</h2>
+      <ul id="log-list"></ul>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
