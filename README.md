@@ -1,1 +1,1 @@
-# Spelling-Bee-Vocabulary-
+# Spelling-Bee-Vocabulary
