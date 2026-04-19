@@ -118,96 +118,271 @@ const words = {
 }
 
 let currentWord = "";
-let score = 0;
+let streak = 0;
+let bestStreak = Number(localStorage.getItem("bestStreak") || 0);
+let totalAnswered = 0;
+let correctCount = 0;
 let log = [];
+let isGameStarted = false;
 
-function startGame() {
-  document.getElementById('question-container').classList.remove('hide');
-  document.getElementById('log-container').classList.remove('hide');
+const questionContainer = document.getElementById("question-container");
+const logContainer = document.getElementById("log-container");
+const languageSelect = document.getElementById("language-select");
+const speedControl = document.getElementById("speed-control");
+const speedValue = document.getElementById("speed-value");
+const startButton = document.getElementById("start-button");
+const resetButton = document.getElementById("reset-button");
+const replayButton = document.getElementById("replay-button");
+const skipButton = document.getElementById("skip-button");
+const submitAnswerButton = document.getElementById("submit-answer-button");
+const userInput = document.getElementById("user-input");
+const wordHint = document.getElementById("word-hint");
+const result = document.getElementById("result");
+const translation = document.getElementById("translation");
+const streakValue = document.getElementById("streak-value");
+const bestStreakValue = document.getElementById("best-streak-value");
+const totalValue = document.getElementById("total-value");
+const accuracyValue = document.getElementById("accuracy-value");
+const logList = document.getElementById("log-list");
+const logCount = document.getElementById("log-count");
+const clearLogButton = document.getElementById("clear-log-button");
+const themeToggle = document.getElementById("theme-toggle");
 
-  // เปลี่ยนข้อความและฟังก์ชันของปุ่ม
-  const startButton = document.querySelector('button[onclick="startGame()"]');
-  startButton.innerText = "รีเซ็ตและเริ่มเกมใหม่";
-  startButton.setAttribute("onclick", "resetGame()");
+function applySavedPreferences() {
+  const savedLanguage = localStorage.getItem("preferredLanguage");
+  const savedSpeed = localStorage.getItem("preferredSpeed");
+  const savedTheme = localStorage.getItem("preferredTheme");
 
-  score = 0;
-  log = [];
-  getNextWord();
+  if (savedLanguage) languageSelect.value = savedLanguage;
+  if (savedSpeed) speedControl.value = savedSpeed;
+  if (savedTheme === "dark") document.documentElement.setAttribute("data-theme", "dark");
+
+  updateThemeButtonText();
+  updateSpeedLabel();
 }
 
-function resetGame() {
-  // รีเซ็ตทุกอย่างกลับไปที่ค่าเริ่มต้น
-  score = 0;
-  log = [];
-  document.getElementById('user-input').value = "";
-  document.getElementById('translation').innerText = "";
-  document.getElementById('log-list').innerHTML = "";
-  document.getElementById('result').innerText = "";
+function updateThemeButtonText() {
+  const isDark = document.documentElement.getAttribute("data-theme") === "dark";
+  themeToggle.textContent = isDark ? "☀️ โหมดสว่าง" : "🌙 โหมดมืด";
+}
 
-  // เริ่มเกมใหม่
-  getNextWord();
+function updateSpeedLabel() {
+  speedValue.textContent = `${Number(speedControl.value).toFixed(1)}x`;
+}
+
+function setResultText(message, type = "info") {
+  result.textContent = message;
+  result.className = `result ${type}`;
+}
+
+function updateStats() {
+  const accuracy = totalAnswered === 0 ? 0 : Math.round((correctCount / totalAnswered) * 100);
+  streakValue.textContent = String(streak);
+  bestStreakValue.textContent = String(bestStreak);
+  totalValue.textContent = String(totalAnswered);
+  accuracyValue.textContent = `${accuracy}%`;
+}
+
+function resetSessionState() {
+  currentWord = "";
+  streak = 0;
+  totalAnswered = 0;
+  correctCount = 0;
+  log = [];
+}
+
+function speakWord(word) {
+  const selectedLanguage = languageSelect.value;
+  const utterance = new SpeechSynthesisUtterance(word);
+  utterance.lang = selectedLanguage;
+  utterance.rate = parseFloat(speedControl.value);
+  speechSynthesis.cancel();
+  speechSynthesis.speak(utterance);
 }
 
 function getNextWord() {
   const wordList = Object.keys(words);
-  const randomIndex = Math.floor(Math.random() * wordList.length);
-  currentWord = wordList[randomIndex];
+  const lastWord = currentWord;
+  let nextWord = wordList[Math.floor(Math.random() * wordList.length)];
 
-  // ดึงค่าภาษาเลือกจาก Dropdown
-  const selectedLanguage = document.getElementById('language-select').value;
+  if (wordList.length > 1) {
+    while (nextWord === lastWord) {
+      nextWord = wordList[Math.floor(Math.random() * wordList.length)];
+    }
+  }
 
-  // กำหนดภาษาสำหรับการออกเสียง
-  const utterance = new SpeechSynthesisUtterance(currentWord);
-  utterance.lang = selectedLanguage;
-  utterance.rate = parseFloat(document.getElementById('speed-control').value);
-  speechSynthesis.speak(utterance);
+  currentWord = nextWord;
+  wordHint.textContent = "ฟังคำศัพท์ แล้วพิมพ์คำที่ได้ยิน";
+  userInput.value = "";
+  translation.textContent = "";
+  userInput.focus();
+  speakWord(currentWord);
+}
 
-  document.getElementById('word-hint').innerText = "ฟังคำศัพท์แล้วพิมพ์คำที่ได้ยิน";
-  document.getElementById('user-input').value = "";
-  document.getElementById('translation').innerText = "";
+function startGame() {
+  isGameStarted = true;
+  questionContainer.classList.remove("hide");
+  logContainer.classList.remove("hide");
+  resetButton.disabled = false;
+  startButton.disabled = true;
+  clearLogButton.disabled = true;
+
+  resetSessionState();
+  updateStats();
+  updateLog();
+  setResultText("เริ่มเกมแล้ว! ฟังเสียงแล้วพิมพ์คำตอบได้เลย", "info");
+  getNextWord();
+}
+
+function resetGame() {
+  if (!isGameStarted) return;
+
+  resetSessionState();
+  updateStats();
+  updateLog();
+  setResultText("รีเซ็ตเกมเรียบร้อย เริ่มรอบใหม่ทันที", "info");
+  getNextWord();
 }
 
 function replayWord() {
-  const selectedLanguage = document.getElementById('language-select').value;
-  const utterance = new SpeechSynthesisUtterance(currentWord);
-  utterance.lang = selectedLanguage;
-  utterance.rate = parseFloat(document.getElementById('speed-control').value);
-  speechSynthesis.speak(utterance);
+  if (!isGameStarted || !currentWord) return;
+  speakWord(currentWord);
+}
+
+function skipWord() {
+  if (!isGameStarted || !currentWord) return;
+
+  const skippedWord = currentWord;
+  const skippedTranslation = words[skippedWord];
+  streak = 0;
+
+  log.unshift({
+    question: skippedWord,
+    userAnswer: "-",
+    isCorrect: false,
+    translation: skippedTranslation,
+    status: "skipped"
+  });
+
+  updateStats();
+  updateLog();
+  setResultText(`ข้ามคำว่า "${skippedWord}" (${skippedTranslation})`, "info");
+  getNextWord();
 }
 
 function checkAnswer() {
-  const userAnswer = document.getElementById('user-input').value.trim();
-  const correctAnswer = currentWord;
-  const translation = words[correctAnswer];
-
-  if (userAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
-    score++;
-    document.getElementById('result').innerText = `ถูกต้อง! ตอบถูกติดกัน: ${score} ครั้ง คำศัพท์ "${correctAnswer}" (${translation})`;
-  } else {
-    score = 0;
-    document.getElementById('result').innerText = `ผิด! คำตอบที่ถูกคือ "${correctAnswer}" (${translation})`;
+  if (!isGameStarted || !currentWord) {
+    setResultText("กรุณากดเริ่มเกมก่อน", "info");
+    return;
   }
 
-  // เพิ่ม log บันทึกย้อนหลัง
-  log.push({
-    question: correctAnswer,
-    userAnswer: userAnswer,
-    isCorrect: userAnswer.toLowerCase() === correctAnswer.toLowerCase(),
-    translation: translation
-  });
-  updateLog();
+  const userAnswer = userInput.value.trim();
+  if (!userAnswer) {
+    setResultText("กรุณาพิมพ์คำตอบก่อนส่ง", "error");
+    return;
+  }
 
+  const correctAnswer = currentWord;
+  const translatedText = words[correctAnswer];
+  const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+
+  totalAnswered += 1;
+  if (isCorrect) {
+    streak += 1;
+    correctCount += 1;
+    setResultText(`✅ ถูกต้อง! ตอบถูกติดกัน ${streak} ครั้ง`, "success");
+  } else {
+    streak = 0;
+    setResultText(`❌ ยังไม่ถูก คำที่ถูกคือ "${correctAnswer}"`, "error");
+  }
+
+  if (streak > bestStreak) {
+    bestStreak = streak;
+    localStorage.setItem("bestStreak", String(bestStreak));
+  }
+
+  translation.textContent = `คำแปล: ${translatedText}`;
+  log.unshift({
+    question: correctAnswer,
+    userAnswer,
+    isCorrect,
+    translation: translatedText,
+    status: isCorrect ? "correct" : "incorrect"
+  });
+
+  updateStats();
+  updateLog();
   getNextWord();
 }
 
 function updateLog() {
-  const logList = document.getElementById('log-list');
   logList.innerHTML = "";
 
   log.forEach((entry, index) => {
-    const logItem = document.createElement('li');
-    const resultEmoji = entry.isCorrect ? '✅' : '❌';
-    logItem.innerHTML = `Word ${index + 1}: ${entry.question} (${entry.translation}) <br> คำตอบของคุณ: ${entry.userAnswer} ${resultEmoji}`;
+    const logItem = document.createElement("li");
+    logItem.className = `log-item ${entry.status || (entry.isCorrect ? "correct" : "incorrect")}`;
+    logItem.innerHTML = `
+      <strong>#${index + 1} ${entry.question} (${entry.translation})</strong>
+      <div>คำตอบของคุณ: ${entry.userAnswer}</div>
+      <div class="meta">${entry.status === "skipped" ? "ข้ามคำนี้" : entry.isCorrect ? "ตอบถูก" : "ตอบผิด"}</div>
+    `;
     logList.appendChild(logItem);
   });
+
+  clearLogButton.disabled = log.length === 0;
+  logCount.textContent = `${log.length} รายการ`;
 }
+
+function clearLog() {
+  log = [];
+  updateLog();
+  setResultText("ล้างประวัติคำตอบแล้ว", "info");
+}
+
+function toggleTheme() {
+  const currentTheme = document.documentElement.getAttribute("data-theme");
+  const isDark = currentTheme === "dark";
+  if (isDark) {
+    document.documentElement.removeAttribute("data-theme");
+    localStorage.setItem("preferredTheme", "light");
+  } else {
+    document.documentElement.setAttribute("data-theme", "dark");
+    localStorage.setItem("preferredTheme", "dark");
+  }
+  updateThemeButtonText();
+}
+
+function saveGamePreferences() {
+  localStorage.setItem("preferredLanguage", languageSelect.value);
+  localStorage.setItem("preferredSpeed", speedControl.value);
+}
+
+startButton.addEventListener("click", startGame);
+resetButton.addEventListener("click", resetGame);
+replayButton.addEventListener("click", replayWord);
+skipButton.addEventListener("click", skipWord);
+submitAnswerButton.addEventListener("click", checkAnswer);
+clearLogButton.addEventListener("click", clearLog);
+themeToggle.addEventListener("click", toggleTheme);
+
+languageSelect.addEventListener("change", () => {
+  saveGamePreferences();
+  if (isGameStarted) replayWord();
+});
+
+speedControl.addEventListener("input", () => {
+  updateSpeedLabel();
+  saveGamePreferences();
+});
+
+userInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    checkAnswer();
+  }
+});
+
+applySavedPreferences();
+updateStats();
+updateLog();
+setResultText("พร้อมเริ่มเกม! เลือกภาษาแล้วกดปุ่มเริ่มเกม", "info");

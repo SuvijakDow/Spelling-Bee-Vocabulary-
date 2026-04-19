@@ -1,45 +1,109 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="th">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Spelling Bee Vocabulary</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <h1>Spelling Bee Vocabulary</h1>
-    
-    <!-- เพิ่ม Dropdown สำหรับเลือกโหมดภาษา -->
-    <label for="language-select">เลือกภาษา (สำเนียง):</label>
-    <select id="language-select">
-      <option value="en-US">อังกฤษ</option>
-      <option value="th-TH">ไทย</option>
-      <option value="zh-CN">จีน</option>
-      <option value="ja-JP">ญี่ปุ่น</option>
-      <option value="ko-KR">เกาหลี</option>
-      <option value="fr-FR">ฝรั่งเศส</option>
-      <option value="ru-RU">รัสเซีย</option>
-      <option value="de-DE">เยอรมัน</option>
-    </select>
-    
-    <button onclick="startGame()">🎧 เริ่มเกม!</button>
-    <div id="question-container" class="hide">
-      <p id="word-hint"></p>
-      <button id="replay-button" onclick="replayWord()">🔊 ฟังอีกครั้ง</button>
-      <input type="text" id="user-input" placeholder="พิมพ์คำที่ได้ยิน">
-      <button onclick="checkAnswer()">ส่งคำตอบ</button>
-      <p id="result"></p>
-      <p id="translation"></p>
-      <label for="speed-control">ปรับความเร็วในการพูด:</label>
-      <input type="range" id="speed-control" min="0.1" max="1.5" value="1" step="0.1">
-    </div>
+  <div class="app-shell">
+    <header class="hero">
+      <div>
+        <h1>Spelling Bee Vocabulary</h1>
+      </div>
+      <button id="theme-toggle" class="icon-button" type="button" aria-label="สลับธีม">🌙 โหมดมืด</button>
+    </header>
 
-    <!-- Log Container -->
-    <div id="log-container" class="hide">
-      <h2>บันทึกผลการตอบ:</h2>
-      <ul id="log-list"></ul>
-    </div>
+    <main class="layout">
+      <section class="panel game-panel">
+        <div class="panel-title-row">
+          <h2>เริ่มฝึก</h2>
+        </div>
+
+        <div class="controls-grid">
+          <div class="control-field">
+            <label for="language-select">ภาษา/สำเนียงการออกเสียง</label>
+            <select id="language-select">
+              <option value="en-US">อังกฤษ (US)</option>
+              <option value="en-GB">อังกฤษ (UK)</option>
+              <option value="th-TH">ไทย</option>
+              <option value="zh-CN">จีน</option>
+              <option value="ja-JP">ญี่ปุ่น</option>
+              <option value="ko-KR">เกาหลี</option>
+              <option value="fr-FR">ฝรั่งเศส</option>
+              <option value="ru-RU">รัสเซีย</option>
+              <option value="de-DE">เยอรมัน</option>
+            </select>
+          </div>
+
+          <div class="control-field">
+            <label for="speed-control">ความเร็วเสียงอ่าน: <span id="speed-value">1.0x</span></label>
+            <input type="range" id="speed-control" min="0.6" max="1.5" value="1" step="0.1">
+          </div>
+        </div>
+
+        <div class="action-row">
+          <button id="start-button" class="primary-button" type="button">🎧 เริ่มเกม</button>
+          <button id="reset-button" class="ghost-button" type="button" disabled>♻️ เริ่มใหม่</button>
+        </div>
+
+        <div id="question-container" class="hide">
+          <p id="word-hint" class="word-hint">กดเริ่มเกมเพื่อฟังคำศัพท์</p>
+          <div class="action-row compact">
+            <button id="replay-button" class="secondary-button" type="button">🔊 ฟังอีกครั้ง</button>
+            <button id="skip-button" class="secondary-button" type="button">⏭️ ข้ามคำนี้</button>
+          </div>
+
+          <div class="answer-row">
+            <input type="text" id="user-input" autocomplete="off" placeholder="พิมพ์คำที่ได้ยิน (กด Enter เพื่อส่ง)">
+            <button id="submit-answer-button" class="primary-button" type="button">ส่งคำตอบ</button>
+          </div>
+
+          <p id="result" class="result"></p>
+          <p id="translation" class="translation"></p>
+        </div>
+      </section>
+
+      <aside class="panel stats-panel">
+        <h2>สถิติ</h2>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>ตอบถูกติดกัน</span>
+            <strong id="streak-value">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>ตอบทั้งหมด</span>
+            <strong id="total-value">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>ความแม่นยำ</span>
+            <strong id="accuracy-value">0%</strong>
+          </div>
+          <div class="stat-card">
+            <span>สถิติสูงสุด</span>
+            <strong id="best-streak-value">0</strong>
+          </div>
+        </div>
+        <button id="clear-log-button" class="ghost-button full-width" type="button" disabled>🧹 ล้างประวัติ</button>
+      </aside>
+
+      <section id="log-container" class="panel log-panel hide">
+        <div class="panel-title-row">
+          <h2>ประวัติคำตอบ</h2>
+          <span id="log-count" class="tag">0 รายการ</span>
+        </div>
+        <ul id="log-list"></ul>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      เคล็ดลัด: กด <kbd>Enter</kbd> เพื่อส่งคำตอบได้ทันที
+    </footer>
   </div>
 
   <script src="script.js"></script>
